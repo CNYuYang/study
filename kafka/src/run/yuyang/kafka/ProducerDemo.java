@@ -12,8 +12,51 @@ public class ProducerDemo {
 
     public static void main(String[] args) {
         //  sendOneASync();
-        // sendOneASyncCallBack();
-        sendOneSync();
+        //  sendOneASyncCallBack();
+        // sendOneSync();
+        sendOneASyncCallBackPartition();
+    }
+
+    private static void sendOneASyncCallBackPartition() {
+        Properties kafkaProps = new Properties();
+        // 连接的集群："bootstrap.servers"
+        kafkaProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.3.14:9092");
+
+        // 指定key value的序列化器："key.serializer"、"value.serializer"
+        // "org.apache.kafka.common.serialization.StringSerializer"
+        kafkaProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        kafkaProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps);
+        try {
+//            for (int i = 0; i < 5; i++) {
+//                // 随机粘性
+//                ProducerRecord<String, String> record = new ProducerRecord<>("first", "France" + i);
+//
+//                producer.send(record, (RecordMetadata metadata, Exception exception) -> {
+//                    if (exception == null) {
+//                        System.out.println("topic:" + metadata.topic() + " partition:" + metadata.partition());
+//                    }
+//                });
+//            }
+
+            for (int i = 0; i < 4; i++) {
+                // 随机粘性
+                ProducerRecord<String, String> record = new ProducerRecord<>("first", i, "", "France" + i);
+
+                producer.send(record, (RecordMetadata metadata, Exception exception) -> {
+                    if (exception == null) {
+                        System.out.println("topic:" + metadata.topic() + " partition:" + metadata.partition());
+                    } else {
+                        System.out.println(exception);
+                    }
+                });
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        producer.close();
     }
 
     private static void sendOneSync() {
@@ -52,7 +95,7 @@ public class ProducerDemo {
         KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps);
         try {
             for (int i = 0; i < 5; i++) {
-                ProducerRecord<String, String> record = new ProducerRecord<>("first", "Precision Products", "France" + i);
+                ProducerRecord<String, String> record = new ProducerRecord<>("first", "France" + i);
 
                 producer.send(record, (RecordMetadata metadata, Exception exception) -> {
                     if (exception == null) {
